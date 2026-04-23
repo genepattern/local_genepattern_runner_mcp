@@ -28,9 +28,10 @@ uv sync
 
 ## CLI Usage
 
-The CLI reads a YAML file that specifies the module zip, parameters, and optional output directory.
+The CLI accepts two input formats: a **YAML run config** or a **GenePattern execution log**.
+The format is detected automatically from the file content.
 
-### YAML format
+### Format 1 — YAML run config
 
 ```yaml
 module: path/to/module.zip          # required — relative to cwd or absolute
@@ -42,24 +43,55 @@ parameters:
   param-name-3: "4"                 # quote numeric strings to keep them as strings
 ```
 
+### Format 2 — GenePattern execution log (`gp_execution_log.txt`)
+
+When you run a job on the public GenePattern server, a log file is generated that records
+every parameter and input used.  You can re-run the same job locally by passing that log
+directly to the CLI.  Because the log does not embed a module zip path you must also supply
+`--zip`.
+
+File-parameter values in the log are server URLs.  The CLI will attempt to download each
+one automatically.  If a URL is unreachable you will be prompted interactively to supply
+a local file path or an alternative URL.
+
+```
+# Job: 689853
+# User: ted
+# Submitted: 2026-04-06 18:57:59.0
+...
+# Module: tfsites.NormalizeTfDNAAffinityData urn:lsid:genepattern.org:module.analysis:00441:4
+# Parameters:
+#    raw.data = https://datasets-tfsites-org.s3.amazonaws.com/...CrebA_8mers.txt # file size 1383935
+#    core.binding.site.definition = NTGNNNNA
+#    DNA.sequence.column = 1
+#    normalization.method = relative
+#    value.column = 4
+#    header.present = TRUE
+```
+
 ### Running the CLI
 
 ```bash
-# Using uv run (recommended — no activation needed)
+# YAML format (recommended — no activation needed)
 uv run python runner/cli.py path/to/run.yaml
 
-# Or after installing the package
-uv pip install -e .
-gp-runner path/to/run.yaml
+# Execution log format — module zip must be provided with --zip
+uv run python runner/cli.py gp_execution_log.txt --zip path/to/module.zip
 
-# Override the output directory at the command line
+# Override the output directory
 uv run python runner/cli.py path/to/run.yaml --output-dir /tmp/my-results
 
 # Parse the module manifest and print parameter info without running
 uv run python runner/cli.py path/to/run.yaml --parse-only
+
+# Or after installing the package with: uv pip install -e .
+gp-runner path/to/run.yaml
+gp-runner gp_execution_log.txt --zip path/to/module.zip
 ```
 
-### Example: NormalizeTfDNAAffinityData
+---
+
+### Example 1: YAML input — NormalizeTfDNAAffinityData
 
 This example uses the test data included in the repository (identical to `test_run_gp_module.py`).
 
@@ -79,40 +111,48 @@ parameters:
   header.present: "FALSE"
 ```
 
-Run it from the project root:
+Run from the project root:
 
 ```bash
 uv run python runner/cli.py test_data/normalize_tf_dna_affinity/run.yaml
 ```
 
-Expected output (stderr shows progress, stdout shows results):
+---
+
+### Example 2: GenePattern execution log input
+
+```bash
+uv run python runner/cli.py \
+  test_data/normalize_tf_dna_affinity/gp_execution_log.txt \
+  --zip test_data/normalize_tf_dna_affinity/tfsites.NormalizeTfDNAAffinityData.zip \
+  --output-dir test_outputs/normalize_tf_dna_affinity
+```
+
+If the S3 URL in the log is publicly accessible, the input file is downloaded automatically.
+If it is not accessible (e.g. requires authentication or has expired), you will be prompted:
 
 ```
-Module:           /path/to/tfsites.NormalizeTfDNAAffinityData.zip
-Output directory: /path/to/test_outputs/normalize_tf_dna_affinity
-Parameters:
-  raw.data: /path/to/01-input_ets-raw-pbm-data.txt
-  core.binding.site.definition: NNGGAWNN
-  ...
+  Downloading https://datasets-tfsites-org.s3.amazonaws.com/.../CrebA_8mers.txt ... failed (HTTP 403)
 
-Success (exit code: 0)
-
-Output files (3) written to: /path/to/test_outputs/normalize_tf_dna_affinity
-  result.txt  (12,345 bytes)
-  ...
+  Could not retrieve 'raw.data' from:
+    https://datasets-tfsites-org.s3.amazonaws.com/.../CrebA_8mers.txt
+  Enter a local file path or URL for 'raw.data' (or press Enter to skip): /path/to/local/CrebA_8mers.txt
 ```
+
+---
 
 ### CLI reference
 
 ```
-usage: cli.py [-h] [--output-dir OUTPUT_DIR] [--parse-only] params_file
+usage: cli.py [-h] [--zip ZIP_PATH] [--output-dir OUTPUT_DIR] [--parse-only] input_file
 
 positional arguments:
-  params_file           YAML file with 'module', optional 'output_dir', and 'parameters'
+  input_file            YAML run config or GenePattern execution log (auto-detected)
 
 options:
   -h, --help            show this help message and exit
-  --output-dir, -o      Output directory (overrides output_dir in YAML)
+  --zip, -z ZIP_PATH    Module zip file (required when input is an execution log)
+  --output-dir, -o      Output directory (overrides output_dir in YAML; defaults to cwd)
   --parse-only          Print module parameter info as JSON without running
 ```
 
@@ -230,14 +270,16 @@ The `uv.lock` file together with `pyproject.toml` is all that is needed to repro
 local_genepattern_runner_mcp/
 ├── gp_runner/
 │   ├── manifest_parser.py   # parses GenePattern module manifests
-│   └── docker_runner.py     # executes modules in Docker
+│   ├── docker_runner.py     # executes modules in Docker
+│   └── log_parser.py        # parses GenePattern server execution logs
 ├── runner/
 │   ├── server.py            # MCP server entry point
 │   ├── tools.py             # MCP tool definitions (parse, run, get-content)
 │   └── cli.py               # terminal CLI entry point
 ├── test_data/
 │   └── normalize_tf_dna_affinity/
-│       ├── run.yaml                              # example CLI run config
+│       ├── run.yaml                              # example YAML run config
+│       ├── gp_execution_log.txt                  # example execution log
 │       ├── 01-input_ets-raw-pbm-data.txt         # example input file
 │       └── tfsites.NormalizeTfDNAAffinityData.zip
 ├── pyproject.toml

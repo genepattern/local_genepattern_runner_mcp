@@ -1,0 +1,17 @@
+
+# Job: 689853
+# User: ted
+# Submitted: 2026-04-06 18:57:59.0
+# Started Running: 2026-04-06 18:58:10.0
+# Finished Running: 2026-04-06 18:58:58.0
+# Completed: Mon Apr 06 18:59:03 UTC 2026
+# ET(ms): 64897    server:  https://cloud.genepattern.org/gp/
+# Module: tfsites.NormalizeTfDNAAffinityData urn:lsid:genepattern.org:module.analysis:00441:4
+# Parameters: 
+#    raw.data = https://datasets-tfsites-org.s3.us-east-2.amazonaws.com/hosted_data/pbm_affinity/raw/CrebA_8mers_11111111.txt # file size 	1383935
+#    output.filename = Creb_CrebA_NTGNNNNA_relative_normalized
+#    core.binding.site.definition = NTGNNNNA
+#    DNA.sequence.column = 1
+#    affinity.column = 4
+#    header.present = TRUE
+#    output.image.as.svg = FALSE
