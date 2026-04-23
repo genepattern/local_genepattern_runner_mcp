@@ -172,6 +172,7 @@ def run_module(
     # Assemble the docker run invocation
     docker_cmd = [
         'docker', 'run', '--rm',
+        '--platform', 'linux/amd64',
         '-v', f'{module_dir}:/module:ro',
         '-v', f'{work_dir}:/work',
         '-w', '/work',

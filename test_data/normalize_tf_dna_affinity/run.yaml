@@ -1,0 +1,14 @@
+# Example run configuration for NormalizeTfDNAAffinityData
+# Paths are relative to the project root (where you run the CLI from).
+module: test_data/normalize_tf_dna_affinity/tfsites.NormalizeTfDNAAffinityData.zip
+
+# Optional: omit to write outputs to the current directory
+output_dir: test_outputs/normalize_tf_dna_affinity
+
+parameters:
+  raw.data: test_data/normalize_tf_dna_affinity/01-input_ets-raw-pbm-data.txt
+  core.binding.site.definition: NNGGAWNN
+  DNA.sequence.column: "1"
+  normalization.method: relative
+  value.column: "4"
+  header.present: "FALSE"

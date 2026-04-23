@@ -5,4 +5,8 @@ description = "Run GenePattern modules in local Docker containers via MCP"
 requires-python = ">=3.10"
 dependencies = [
     "mcp[cli]>=1.14.0,<2.0.0",
+    "pyyaml>=6.0",
 ]
+
+[project.scripts]
+gp-runner = "runner.cli:main"
