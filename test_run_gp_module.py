@@ -8,10 +8,10 @@ from runner.tools import run_gp_module
 
 
 def main() -> None:
-    zip_path = "/Users/liefeld/GenePattern/modules/tfsites.NormalizeTfDNAAffinityData/build/tfsites.NormalizeTfDNAAffinityData.zip"
+    zip_path = "test_data/normalize_tf_dna_affinity/tfsites.NormalizeTfDNAAffinityData.zip"
 
     param_values = {
-        "raw.data": "/Users/liefeld/GenePattern/modules/tfsites.NormalizeTfDNAAffinityData/gpunit/data/01-input_ets-raw-pbm-data.txt",
+        "raw.data": "test_data/normalize_tf_dna_affinity/01-input_ets-raw-pbm-data.txt",
         "core.binding.site.definition": "NNGGAWNN",
         "DNA.sequence.column": "1",
         "normalization.method": "relative",
@@ -19,7 +19,7 @@ def main() -> None:
         "header.present": "FALSE",
     }
 
-    output_dir = Path("/Users/liefeld/projects/gp-runner/test_outputs/normalize_tf_dna_affinity")
+    output_dir = Path("test_outputs/normalize_tf_dna_affinity")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     result_json = run_gp_module(
